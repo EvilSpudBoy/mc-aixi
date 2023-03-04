@@ -7,13 +7,13 @@ SOURCES = $(wildcard src/*.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 
 $(PROGRAM): $(OBJECTS)
-	g++ $(CFLAGS) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS)
+	g++ -g $(CFLAGS) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS)
 
 # Include known dependecies from -MMD
 -include $(OBJECTS:.o=.d)
 
 %.o: %.cpp
-	g++ -MMD $(CFLAGS) -o $@ -c $<
+	g++ -g -MMD $(CFLAGS) -o $@ -c $<
 
 
 test-predict-build: aixi tests/test-predict.o
