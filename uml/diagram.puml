@@ -1,0 +1,490 @@
+@startuml
+
+/' Objects '/
+
+class Agent {
+	+Agent(options_t& options, Environment const& env)
+	+~Agent()
+	-m_ct : ContextTree*
+	-m_env : Environment const&
+	-m_search_tree : SearchNode*
+	-decodeAction(const symbol_list_t& symlist) : action_t {query}
+	+genAction() : action_t {query}
+	+genRandomAction() : action_t {query}
+	+search() : action_t
+	+age() : age_t {query}
+	-m_time_cycle : age_t
+	+getPredictedActionProb(action_t action) : double
+	+maxReward() : double {query}
+	+perceptProbability(percept_t observation, percept_t reward) : double {query}
+	+historySize() : int {query}
+	+horizon() : int {query}
+	+lastUpdate() : int {query}
+	-m_horizon : int
+	-m_learning_period : int
+	-m_mc_simulations : int
+	+maxAction() : int {query}
+	+maxBitsNeeded() : int {query}
+	+modelSize() : int {query}
+	-m_options : options_t&
+	-decodeObservation(const symbol_list_t& symlist) : percept_t {query}
+	-decodeReward(const symbol_list_t& symlist) : percept_t {query}
+	+averageReward() : reward_t {query}
+	-m_total_reward : reward_t
+	+playout(int horizon) : reward_t
+	+totalReward() : reward_t {query}
+	-m_last_update : update_t
+	-decodePercept(const symbol_list_t& symlist, percept_t& observation, percept_t& reward) : void
+	-encodeAction(symbol_list_t& symlist, action_t action) : void {query}
+	-encodePercept(symbol_list_t& symlist, percept_t observation, percept_t reward) : void {query}
+	+genPercept(percept_t& observation, percept_t& reward) : void
+	+genPerceptAndUpdate(percept_t& observation, percept_t& reward) : void
+	+modelRevert(const ModelUndo& mu) : void
+	+modelUpdate(percept_t observation, percept_t reward) : void
+	+modelUpdate(action_t action) : void
+	+reset() : void
+}
+
+
+class CTNode {
+	-CTNode()
+	-~CTNode()
+	+child(const symbol_t sym) : CTNode* {query}
+	-m_child : CTNode*
+	+isLeafNode() : bool {query}
+	-m_count : int
+	+size() : int {query}
+	+visits() : int {query}
+	-revert(const symbol_t symbol) : void
+	-update(const symbol_t symbol) : void
+	-updateLogProbability() : void
+	+logKT() : weight_t {query}
+	-logKTMultiplier(const symbol_t symbol) : weight_t {query}
+	+logProbability() : weight_t {query}
+	-m_log_kt : weight_t
+	-m_log_probability : weight_t
+}
+
+
+class CoinFlip {
+	+CoinFlip(options_t& options)
+	+maxAction() : action_t {query}
+	-m_probability : double
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-{static} aHeads : static const action_t
+	-{static} aTails : static const action_t
+	-{static} cDefaultProbability : static const double
+	-{static} oHeads : static const percept_t
+	-{static} oTails : static const percept_t
+	-{static} rLoss : static const percept_t
+	-{static} rWin : static const percept_t
+	+print() : std::string {query}
+	+performAction(const action_t action) : void
+}
+
+
+class ContextTree {
+	+ContextTree(const int depth)
+	+~ContextTree()
+	-m_root : CTNode*
+	-m_context : CTNode**
+	+logBlockProbability() : double {query}
+	-m_depth : int
+	+depth() : size_t {query}
+	+historySize() : size_t {query}
+	+size() : size_t {query}
+	-m_history : symbol_list_t
+	+clear() : void
+	+genRandomSymbols(symbol_list_t& symbols, const int bits) : void
+	+genRandomSymbolsAndUpdate(symbol_list_t& symbols, const int bits) : void
+	+revert() : void
+	+revert(const int num_symbols) : void
+	+revertHistory(const int num_symbols) : void
+	+update(const symbol_t symbol) : void
+	+update(symbol_list_t const& symbols) : void
+	-updateContext() : void
+	+updateHistory(const symbol_t symbol) : void
+	+updateHistory(symbol_list_t const& symbols) : void
+	+predict(const symbol_t symbol) : weight_t
+	+predict(symbol_list_t const& symbols) : weight_t
+}
+
+
+abstract class Environment {
+	#m_action : action_t
+	+{abstract} maxAction() : action_t {query}
+	+minAction() : action_t {query}
+	+isFinished() : bool {query}
+	+isValidAction(const action_t action) : bool {query}
+	+isValidObservation(const percept_t observation) : bool {query}
+	+isValidReward(const percept_t reward) : bool {query}
+	+actionBits() : int {query}
+	+observationBits() : int {query}
+	+perceptBits() : int {query}
+	+rewardBits() : int {query}
+	+getObservation() : percept_t {query}
+	+getReward() : percept_t {query}
+	#m_observation : percept_t
+	#m_reward : percept_t
+	+{abstract} maxObservation() : percept_t {query}
+	+{abstract} maxReward() : percept_t {query}
+	+minObservation() : percept_t {query}
+	+minReward() : percept_t {query}
+	+print() : std::string {query}
+	+{abstract} performAction(action_t action) : void
+}
+
+
+class ExtendedTiger {
+	+ExtendedTiger(options_t& options)
+	+maxAction() : action_t {query}
+	-m_sitting : bool
+	-m_listen_accuracy : double
+	-m_gold : percept_t
+	-m_tiger : percept_t
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-{static} aLeft : static const action_t
+	-{static} aListen : static const action_t
+	-{static} aRight : static const action_t
+	-{static} aStand : static const action_t
+	-{static} cDefaultListenAccuracy : static const double
+	-{static} oLeft : static const percept_t
+	-{static} oNull : static const percept_t
+	-{static} oRight : static const percept_t
+	-{static} rGold : static const percept_t
+	-{static} rInvalid : static const percept_t
+	-{static} rListen : static const percept_t
+	-{static} rStand : static const percept_t
+	-{static} rTiger : static const percept_t
+	+print() : std::string {query}
+	+performAction(const action_t action) : void
+	-reset() : void
+}
+
+
+class KuhnPoker {
+	+KuhnPoker(options_t& options)
+	-m_env_action : action_t
+	-m_env_previous_action : action_t
+	+maxAction() : action_t {query}
+	-m_agent_card : percept_t
+	-m_agent_previous_card : percept_t
+	-m_env_card : percept_t
+	-m_env_previous_card : percept_t
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-randomCard() : percept_t {query}
+	-{static} aBet : static const action_t
+	-{static} aPass : static const action_t
+	-{static} cBetProbJack : static const double
+	-{static} cBetProbKing : static const double
+	-{static} cBetProbQueen : static const double
+	-{static} oBet : static const percept_t
+	-{static} oJack : static const percept_t
+	-{static} oKing : static const percept_t
+	-{static} oPass : static const percept_t
+	-{static} oQueen : static const percept_t
+	-{static} rBetLoss : static const percept_t
+	-{static} rBetWin : static const percept_t
+	-{static} rPassLoss : static const percept_t
+	-{static} rPassWin : static const percept_t
+	-cardToString(const percept_t card) : std::string {query}
+	+print() : std::string {query}
+	+performAction(action_t action) : void
+	-reset() : void
+}
+
+
+class Maze {
+	+Maze(options_t& options)
+	+~Maze()
+	+maxAction() : action_t {query}
+	-m_teleported : bool
+	-m_wall_collision : bool
+	-m_maze_layout : char**
+	-m_obs_encoding : enum
+	-m_col : int
+	-m_max_reward : int
+	-m_num_cols : int
+	-m_num_rows : int
+	-m_row : int
+	-m_maze_rewards : int**
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-{static} aDown : static const action_t
+	-{static} aLeft : static const action_t
+	-{static} aRight : static const action_t
+	-{static} aUp : static const action_t
+	-{static} cEmpty : static const char
+	-{static} cTeleportFrom : static const char
+	-{static} cTeleportTo : static const char
+	-{static} cWall : static const char
+	-{static} oDownWall : static const percept_t
+	-{static} oLeftWall : static const percept_t
+	-{static} oNull : static const percept_t
+	-{static} oRightWall : static const percept_t
+	-{static} oUpWall : static const percept_t
+	+print() : std::string {query}
+	-calculateObservation() : void
+	-configure(options_t& options) : void
+	+performAction(const action_t action) : void
+	-teleportAgent() : void
+}
+
+
+class ModelUndo {
+	+ModelUndo(const Agent& agent)
+	+age() : age_t {query}
+	-m_age : age_t
+	+lastUpdate() : int {query}
+	-m_reward : reward_t
+	+reward() : reward_t {query}
+	+historySize() : size_t {query}
+	-m_history_size : size_t
+	-m_last_update : update_t
+}
+
+
+class PacMan {
+	+PacMan(options_t& options)
+	+maxAction() : action_t {query}
+	-binaryObservation : bool
+	-findPacman(int* ghostX, int* ghostY, int* sniff) : bool
+	-isValidGhostMove(int x, int y) : bool
+	-poweredUp : bool
+	-reset : bool
+	-aGhostCovering : int
+	-aGhostX : int
+	-aGhostY : int
+	-bGhostCovering : int
+	-bGhostX : int
+	-bGhostY : int
+	-binaryToDecimal(bool binary) : int
+	-cGhostCovering : int
+	-cGhostX : int
+	-cGhostY : int
+	-dGhostCovering : int
+	-dGhostX : int
+	-dGhostY : int
+	-manhattanDistance(int x1, int y1, int x2, int y2) : int
+	-pacmanX : int
+	-pacmanY : int
+	-pelletCount : int
+	-powerLeft : int
+	-resets : int
+	-sniffA : int
+	-sniffB : int
+	-sniffC : int
+	-sniffD : int
+	-timestep : int
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-map : std::string
+	+print() : std::string {query}
+	-ghostPursuitMove(int* ghostX, int* ghostY, int* covers, char ghost) : void
+	-ghostRandomMove(int* ghostX, int* ghostY, int* covers, char ghost) : void
+	-moveGhostAndUpdateReward(int* ghostX, int* ghostY, int* sniff, int* covers, char ghost) : void
+	-movePacmanAndUpdateReward(int x, int y) : void
+	+performAction(action_t action) : void
+	-resetEpisode() : void
+	-resetGhost(char ghost) : void
+	-updateObservation() : void
+}
+
+
+class RockPaperScissors {
+	+RockPaperScissors(options_t& options)
+	+maxAction() : action_t {query}
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-{static} aPaper : static const action_t
+	-{static} aRock : static const action_t
+	-{static} aScissors : static const action_t
+	-{static} oPaper : static const percept_t
+	-{static} oRock : static const percept_t
+	-{static} oScissors : static const percept_t
+	-{static} rDraw : static const percept_t
+	-{static} rLose : static const percept_t
+	-{static} rWin : static const percept_t
+	+print() : std::string {query}
+	+performAction(const action_t action) : void
+}
+
+
+class SearchNode {
+	+SearchNode(const nodetype_t nodetype)
+	+~SearchNode()
+	+child(const interaction_t child_index) : SearchNode* {query}
+	+selectAction(Agent const& agent) : action_t
+	-m_child : child_map_t
+	-m_mean : double
+	-m_type : nodetype_t
+	+expectation() : reward_t {query}
+	+sample(Agent& agent, const int horizon) : reward_t
+	-m_visits : visits_t
+	+visits() : visits_t {query}
+}
+
+
+class TicTacToe {
+	+TicTacToe(options_t& options)
+	+maxAction() : action_t {query}
+	-checkWin() : bool
+	-m_actions_since_reset : int
+	-m_board : percept_t
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-{static} oAgent : static const percept_t
+	-{static} oEmpty : static const percept_t
+	-{static} oEnv : static const percept_t
+	-{static} rDraw : static const percept_t
+	-{static} rInvalid : static const percept_t
+	-{static} rLoss : static const percept_t
+	-{static} rNull : static const percept_t
+	-{static} rWin : static const percept_t
+	+print() : std::string {query}
+	-computeObservation() : void
+	+performAction(const action_t action) : void
+	-reset() : void
+}
+
+
+class Tiger {
+	+Tiger(options_t& options)
+	+maxAction() : action_t {query}
+	-m_listen_accuracy : double
+	-m_gold : percept_t
+	-m_tiger : percept_t
+	+maxObservation() : percept_t {query}
+	+maxReward() : percept_t {query}
+	-{static} aLeft : static const action_t
+	-{static} aListen : static const action_t
+	-{static} aRight : static const action_t
+	-{static} cDefaultListenAccuracy : static const double
+	-{static} oLeft : static const percept_t
+	-{static} oNull : static const percept_t
+	-{static} oRight : static const percept_t
+	-{static} rEaten : static const percept_t
+	-{static} rGold : static const percept_t
+	-{static} rListen : static const percept_t
+	+print() : std::string {query}
+	+performAction(const action_t action) : void
+	-placeTiger() : void
+}
+
+
+enum Maze::empty {
+	cCoordinates
+	cUninformative
+	cWalls
+}
+
+
+enum nodetype_t {
+	chance
+	decision
+}
+
+
+enum update_t {
+	action_update
+	percept_update
+}
+
+
+
+
+
+/' Inheritance relationships '/
+
+.Environment <|-- .CoinFlip
+
+
+.Environment <|-- .ExtendedTiger
+
+
+.Environment <|-- .KuhnPoker
+
+
+.Environment <|-- .Maze
+
+
+.Environment <|-- .PacMan
+
+
+.Environment <|-- .RockPaperScissors
+
+
+.Environment <|-- .TicTacToe
+
+
+.Environment <|-- .Tiger
+
+
+
+
+
+/' Aggregation relationships '/
+
+.Agent o-- .ContextTree
+
+
+.Agent *-- .Environment
+
+
+.Agent o-- .SearchNode
+
+
+.Agent *-- .update_t
+
+
+.CTNode o-- .CTNode
+
+
+.ContextTree "2" o-- .CTNode
+
+
+.ModelUndo *-- .update_t
+
+
+.SearchNode *-- .nodetype_t
+
+
+
+
+
+
+/' Dependency relationships '/
+
+.Agent <.. .ModelUndo
+
+
+.Agent <.. .SearchNode
+
+
+.Agent <.. .SearchNode
+
+
+.Environment <.. .Agent
+
+
+.ModelUndo <.. .Agent
+
+
+.nodetype_t <.. .SearchNode
+
+
+
+
+
+
+/' Nested objects '/
+
+.Maze +-- .Maze::empty
+
+
+
+
+@enduml
