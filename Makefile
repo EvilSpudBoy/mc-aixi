@@ -30,5 +30,3 @@ test-agent: test-agent-build
 
 clean:
 	rm -f $(PROGRAM) test-predict src/*.o src/*.d
-
-

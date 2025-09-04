@@ -21,6 +21,7 @@
 #include "tictactoe.hpp"
 #include "tiger.hpp"
 #include "extendedtiger.hpp"
+#include "imagetrainer.hpp"
 
 
 // Stream for logging
@@ -252,13 +253,15 @@ int main(int argc, char *argv[]) {
 		env = new RockPaperScissors(options);
 	} else if (environment_name == "tictactoe") {
 		env = new TicTacToe(options);
-	} else if (environment_name == "tiger") {
- 		env = new Tiger(options);
- 	} else {
-		std::cerr << "ERROR: unknown environment '" << environment_name << "'"
-		    << std::endl;
-		return EXIT_FAILURE;
-	}
+    } else if (environment_name == "tiger") {
+        env = new Tiger(options);
+    } else if (environment_name == "image-trainer" || environment_name == "imagetrainer") {
+        env = new ImageTrainer(options);
+    } else {
+        std::cerr << "ERROR: unknown environment '" << environment_name << "'"
+            << std::endl;
+        return EXIT_FAILURE;
+    }
 
 	// Copy environment-related configuration options to options map
 	options["action-bits"] = toString(env->actionBits());
