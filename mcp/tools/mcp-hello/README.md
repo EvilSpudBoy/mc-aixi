@@ -122,6 +122,25 @@ Add an entry to `~/Library/Application Support/Claude/claude_desktop_config.json
 - Replace the absolute path accordingly. You may need the full path to `uv` (`which uv`).
 - Restart Claude Desktop and look for the tools UI; you should see `mcp-hello` tools.
 
+## Configure Codex CLI (MCP)
+Add an entry to `~/.codex/config.toml` under `mcp_servers` (TOML format):
+
+```toml
+# IMPORTANT: top-level key is `mcp_servers` (TOML), not `mcpServers`.
+[mcp_servers.mcp-hello]
+command = "uv"
+args = [
+  "--directory",
+  "/ABSOLUTE/PATH/TO/mc-aixi/mcp/tools/mcp-hello",
+  "run",
+  "hello.py"
+]
+# Optional: env = { KEY = "value" }
+```
+
+- Use absolute paths. You may need the full path to `uv` (e.g., `which uv`).
+- Codex loads MCP servers lazily; list tools in a session to verify.
+
 ## Notes
 - Weather tools query the US National Weather Service (`api.weather.gov`) and only work for US locations.
 - These tools set a simple `User-Agent` as required by the API and handle basic errors.

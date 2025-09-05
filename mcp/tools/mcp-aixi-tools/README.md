@@ -92,3 +92,23 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 Notes:
 - STDIO servers must not write to stdout; use logging to stderr only if needed.
 - `run_agent` writes logs under `log/` and may take time depending on the environment.
+
+## Configure Codex CLI (MCP)
+Add an entry to `~/.codex/config.toml` under `mcp_servers` (TOML format):
+
+```toml
+# IMPORTANT: top-level key is `mcp_servers` (TOML), not `mcpServers`.
+[mcp_servers.aixi-tools]
+command = "uv"
+args = [
+  "--directory",
+  "/ABSOLUTE/PATH/TO/mc-aixi/mcp/tools/mcp-aixi-tools",
+  "run",
+  "server.py"
+]
+# Optional: set env vars for the server process
+# env = { SOME_FLAG = "1" }
+```
+
+- Use absolute paths. You may need the full path to `uv` (e.g., `which uv`).
+- Codex currently supports stdio MCP servers; SSE servers require an adapter.
