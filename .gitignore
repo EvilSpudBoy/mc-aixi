@@ -1,3 +1,4 @@
 /src/*.o
 /src/*.d
 /aixi
+/xcode/mc-aixi/mc-aixi.xcodeproj/xcuserdata/
