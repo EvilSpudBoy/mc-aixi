@@ -1,0 +1,10 @@
+[project]
+name = "mcp-aixi-tools"
+version = "0.1.0"
+description = "MCP server exposing mc-aixi repo tools (build/run/graph/summarize/search)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.2.0",
+]
+

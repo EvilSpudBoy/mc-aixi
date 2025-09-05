@@ -47,6 +47,9 @@
   - `add(a: float, b: float) -> float`
   - `get_alerts(state: str) -> str` (US NWS alerts)
   - `get_forecast(latitude: float, longitude: float) -> str` (US NWS forecast)
+- `mcp/tools/mcp-aixi-tools/`: AIXI repo tools server exposing:
+  - `list_envs()`, `build(target?)`, `run_agent(conf, log_path?)`,
+  - `graph_log(log_file)`, `summarize_log(log_file)`, `search_code(query, path)`
 
 ### Requirements
 - Python 3.10+
@@ -87,6 +90,15 @@ npx @modelcontextprotocol/inspector python hello.py
 
 - Choose STDIO transport. Tools available: `hello`, `add`, `get_alerts`, `get_forecast`.
 - Inspector requires Node.js >= 22.7.5. If your Node is older, upgrade via `nvm`, `fnm`, or Volta.
+
+For AIXI tools server (CLI examples):
+
+```bash
+cd mcp/tools/mcp-aixi-tools
+. .venv/bin/activate
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python server.py --method tools/list
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python server.py --method tools/call --tool-name list_envs
+```
 
 CLI examples (Inspector):
 

@@ -11,7 +11,7 @@ Tools
 - search_code(query, path?): Simple substring search across src/ (and a few text types).
 
 Server
-- Implementation: Python stdio MCP server at mcp/tools/aixi_tools_server.py using the Python MCP SDK (FastMCP).
+- Implementation: Python stdio MCP server at `mcp/tools/mcp-aixi-tools/server.py` using the Python MCP SDK (FastMCP).
 - Transport: stdio (recommended for local hosts like Claude Desktop). No external processes are spawned except the requested tools.
 
 Setup
@@ -25,9 +25,8 @@ Setup
      {
        "mcpServers": {
          "aixi-tools": {
-           "command": "python3",
-           "args": ["mcp/tools/aixi_tools_server.py"],
-           "cwd": "/absolute/path/to/your/mc-aixi"
+           "command": "uv",
+           "args": ["--directory", "/absolute/path/to/your/mc-aixi/mcp/tools/mcp-aixi-tools", "run", "server.py"]
          }
        }
      }
@@ -47,4 +46,3 @@ Troubleshooting
 - If the host can’t discover tools, ensure the Python package mcp is installed and that Claude (or your client) is picking up the config. 
 - If build fails, run make manually in the repo root to inspect errors, then rerun the tool.
 - If graphing fails, confirm python3 and graph.py work locally: python3 graph.py log/tictactoe.log
-
