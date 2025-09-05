@@ -88,6 +88,29 @@ npx @modelcontextprotocol/inspector python hello.py
 - Choose STDIO transport. Tools available: `hello`, `add`, `get_alerts`, `get_forecast`.
 - Inspector requires Node.js >= 22.7.5. If your Node is older, upgrade via `nvm`, `fnm`, or Volta.
 
+CLI examples (Inspector):
+
+```bash
+cd mcp/tools/mcp-hello
+. .venv/bin/activate
+
+# List tools
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py --method tools/list
+
+# Call hello
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py \
+  --method tools/call --tool-name hello --tool-arg name=World
+
+# Call get_alerts
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py \
+  --method tools/call --tool-name get_alerts --tool-arg state=CA
+
+# Call get_forecast
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py \
+  --method tools/call --tool-name get_forecast \
+  --tool-arg latitude=38.5816 --tool-arg longitude=-121.4944
+```
+
 Quick upgrade with nvm:
 
 ```bash

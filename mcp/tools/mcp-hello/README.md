@@ -57,6 +57,38 @@ npx @modelcontextprotocol/inspector python hello.py
   - `get_alerts(state="CA")`
   - `get_forecast(latitude=38.5816, longitude=-121.4944)`
 
+### CLI examples (Inspector)
+
+List tools:
+
+```bash
+cd mcp/tools/mcp-hello
+. .venv/bin/activate
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py --method tools/list
+```
+
+Call `hello`:
+
+```bash
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py \
+  --method tools/call --tool-name hello --tool-arg name=World
+```
+
+Call `get_alerts`:
+
+```bash
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py \
+  --method tools/call --tool-name get_alerts --tool-arg state=CA
+```
+
+Call `get_forecast`:
+
+```bash
+npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py \
+  --method tools/call --tool-name get_forecast \
+  --tool-arg latitude=38.5816 --tool-arg longitude=-121.4944
+```
+
 If your Node.js is older than 22.7.5, upgrade with nvm:
 
 ```bash
