@@ -1,0 +1,13 @@
+[project]
+name = "mcp-hello"
+version = "0.1.0"
+description = "Minimal Python MCP server with example tools (hello, add)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.2.0",
+    "httpx>=0.27",
+]
+
+[tool.uv]
+dev-dependencies = []

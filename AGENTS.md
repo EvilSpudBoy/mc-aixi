@@ -7,6 +7,7 @@
 - graph/: Generated plots from logs (via graph.py).
 - doc/: Generated documentation (see doc/html/index.html).
 - tutorial/: Paper/tutorial assets. uml/: Diagrams. Makefile at repo root builds the binary `aixi`.
+- mcp/tools/: MCP development area (Python servers/tools). Example: `mcp-hello`.
 
 ## Build, Test, and Development Commands
 - make: Compile all sources and produce `./aixi` (g++ -O3 -Wall -g).
@@ -37,3 +38,86 @@
 ## Configuration & Logs
 - Use `conf/*.conf` to select the environment (`environment=tictactoe|maze|pacman|...`) and parameters (e.g., `random-seed`, `exploration`).
 - Always pass an explicit log path when running to capture results; generate plots with `python graph.py` (outputs under `graph/<logfile>/`).
+
+## MCP Tools (Python)
+
+### Location
+- `mcp/tools/mcp-hello/`: Minimal MCP server using FastMCP exposing:
+  - `hello(name: str) -> str`
+  - `add(a: float, b: float) -> float`
+  - `get_alerts(state: str) -> str` (US NWS alerts)
+  - `get_forecast(latitude: float, longitude: float) -> str` (US NWS forecast)
+
+### Requirements
+- Python 3.10+
+- Dependencies: `mcp[cli] >= 1.2.0`, `httpx`
+
+### Setup
+Using uv (recommended):
+
+```bash
+cd mcp/tools/mcp-hello
+uv venv
+. .venv/bin/activate  # Windows: .venv\Scripts\activate
+uv pip install -e .
+```
+
+Using pip:
+
+```bash
+cd mcp/tools/mcp-hello
+python -m venv .venv
+. .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -e .
+```
+
+### Run (STDIO server)
+
+```bash
+python hello.py
+# or
+uv run hello.py
+```
+
+### Test with MCP Inspector (no install)
+
+```bash
+npx @modelcontextprotocol/inspector python hello.py
+```
+
+- Choose STDIO transport. Tools available: `hello`, `add`, `get_alerts`, `get_forecast`.
+- Inspector requires Node.js >= 22.7.5. If your Node is older, upgrade via `nvm`, `fnm`, or Volta.
+
+Quick upgrade with nvm:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm install 22
+nvm use 22
+node -v && npm -v
+```
+
+### Claude Desktop integration
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "mcp-hello": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/ABSOLUTE/PATH/TO/mcp/tools/mcp-hello",
+        "run",
+        "hello.py"
+      ]
+    }
+  }
+}
+```
+
+### Notes
+- STDIO servers must not write to stdout (no `print`); use logging to stderr.
+- Weather tools query `api.weather.gov` and only support US locations.
