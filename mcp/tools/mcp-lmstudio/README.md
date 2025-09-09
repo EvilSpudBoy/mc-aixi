@@ -37,6 +37,18 @@ npx @modelcontextprotocol/inspector --cli --transport stdio \
   --tool-arg messages='[{"role":"user","content":"Hello from MCP"}]'
 ```
 
+Example: call lm_chat_structured (tiny JSON schema)
+```bash
+# Replace MODEL_ID with one from lm_list_models
+npx @modelcontextprotocol/inspector --cli --transport stdio \
+  uv --directory mcp/tools/mcp-lmstudio run server.py \
+  --method tools/call \
+  --tool-name lm_chat_structured \
+  --tool-arg model=MODEL_ID \
+  --tool-arg messages='[{"role":"user","content":"Tell me a short joke."}]' \
+  --tool-arg schema='{"name":"joke","schema":{"type":"object","properties":{"joke":{"type":"string"}},"required":["joke"]}}'
+```
+
 Notes
 - Keep LM Studio running as a local server (Developer tab or `lms server start`).
 - For chat structured output, the tool parses JSON content when possible and returns it under `parsed`.
