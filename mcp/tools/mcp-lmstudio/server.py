@@ -35,10 +35,10 @@ def _base_url() -> str:
 def _headers() -> dict[str, str]:
     api_key = os.environ.get("LMSTUDIO_API_KEY", "lm-studio").strip()
     # LM Studio examples often pass api_key="lm-studio"; include Authorization by default.
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}" if api_key else "",
-    }
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return headers
 
 
 async def _http_post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -205,4 +205,3 @@ async def lm_embeddings(
 if __name__ == "__main__":
     # Run the MCP server using stdio transport.
     mcp.run(transport="stdio")
-
