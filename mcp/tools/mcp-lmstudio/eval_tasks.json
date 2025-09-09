@@ -9,6 +9,38 @@
       "case_insensitive": false
     },
     {
+      "id": "reasoning_balls",
+      "category": "reasoning",
+      "type": "numeric",
+      "prompt": "If there are 3 red balls and 2 blue balls in a bag, and you add 4 more red balls, how many balls are in the bag now? Answer with just the number.",
+      "expected_number": 9
+    },
+    {
+      "id": "reasoning_compare",
+      "category": "reasoning",
+      "type": "regex",
+      "prompt": "Is 12345*67 greater than 800000? Respond with exactly YES or NO.",
+      "expected_regex": "^YES$",
+      "case_insensitive": true
+    },
+    {
+      "id": "retrieval_secret",
+      "category": "retrieval",
+      "type": "regex",
+      "prompt": "Context: The secret code is ALPHA-42. Question: What is the secret code? Answer with exactly the code.",
+      "expected_regex": "^ALPHA-42$",
+      "case_insensitive": false
+    },
+    {
+      "id": "summary_aixi",
+      "category": "summarization",
+      "type": "summary",
+      "prompt": "Summarize the following in 20-30 words. Include the word AIXI. Text: 'AIXI is a theoretical model of universal artificial intelligence that combines Solomonoff induction with sequential decision theory. It is incomputable but useful as an idealized benchmark to reason about agents.'",
+      "min_words": 15,
+      "max_words": 35,
+      "must_include": ["AIXI"]
+    },
+    {
       "id": "math_mul",
       "category": "math",
       "type": "numeric",
@@ -84,4 +116,3 @@
     }
   ]
 }
-

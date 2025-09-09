@@ -202,6 +202,10 @@ def chat_once(
     return data, content_str, tool_calls
 
 
+def _word_count(text: str) -> int:
+    return len(re.findall(r"\b\w+\b", text))
+
+
 def evaluate_task(
     base_url: str,
     api_key: str,
@@ -275,6 +279,16 @@ def evaluate_task(
             expected = float(task["expected_number"])
             val = extract_first_number(content)
             ok = val is not None and abs(val - expected) < 1e-6
+        elif task_type == "summary":
+            w = _word_count(content)
+            min_w = int(task.get("min_words", 0))
+            max_w = int(task.get("max_words", 10**9))
+            includes_ok = True
+            for must in task.get("must_include", []):
+                if re.search(re.escape(must), content, flags=re.I) is None:
+                    includes_ok = False
+                    break
+            ok = (min_w <= w <= max_w) and includes_ok
         elif task_type == "json":
             obj = parse_json_from_text(content)
             if obj is None:
@@ -340,6 +354,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     ensure_dir(out_dir)
     run_id = f"llm_eval-{int(time.time())}"
     out_jsonl = out_dir / f"{run_id}.jsonl"
+    out_csv = out_dir / f"{run_id}.csv"
+    out_html = out_dir / f"{run_id}.html"
 
     print(f"Evaluating model: {model}")
     print(f"Base URL: {base_url}")
@@ -363,7 +379,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             if res.get("success"):
                 ok_count += 1
             f.write(json.dumps(res, ensure_ascii=False) + "\n")
-            print(f"- {t['id']}: {'PASS' if res.get('success') else 'FAIL'} ({res.get('latency_s'):.2f}s)")
+            print(f"- {t['id']}: {'PASS' if res.get('success') else 'FAIL'} ({(res.get('latency_s') or 0):.2f}s)")
 
     total = len(results)
     elapsed = time.perf_counter() - t_start
@@ -378,15 +394,120 @@ def main(argv: Optional[List[str]] = None) -> int:
         p, n = cats[c]
         cats[c] = (p + s, n + 1)
 
+    # CSV summary
+    try:
+        import csv
+
+        with out_csv.open("w", newline="", encoding="utf-8") as cf:
+            writer = csv.writer(cf)
+            writer.writerow([
+                "id",
+                "category",
+                "type",
+                "success",
+                "score",
+                "latency_s",
+                "model",
+                "error",
+            ])
+            for r in results:
+                writer.writerow([
+                    r.get("id"),
+                    r.get("category"),
+                    r.get("type"),
+                    1 if r.get("success") else 0,
+                    r.get("score"),
+                    r.get("latency_s"),
+                    r.get("model"),
+                    r.get("error"),
+                ])
+    except Exception as e:
+        print(f"Warning: failed to write CSV: {e}", file=sys.stderr)
+
+    # HTML report
+    try:
+        def esc(s: Any) -> str:
+            return (
+                str(s)
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+            )
+
+        rows = []
+        for r in results:
+            rows.append(
+                f"<tr><td>{esc(r.get('id'))}</td><td>{esc(r.get('category'))}</td><td>{esc(r.get('type'))}</td>"
+                f"<td>{'PASS' if r.get('success') else 'FAIL'}</td><td>{(r.get('latency_s') or 0):.2f}</td><td>{esc(r.get('model'))}</td>"
+                f"<td>{esc(r.get('error') or '')}</td></tr>"
+            )
+
+        cat_rows = []
+        for c, (p, n) in sorted(cats.items()):
+            pct = (p / n * 100.0) if n else 0.0
+            bar_w = int(pct)
+            cat_rows.append(
+                f"<tr><td>{esc(c)}</td><td>{p}/{n}</td><td><div style='background:#eee;width:100px'><div style='background:#4caf50;height:10px;width:{bar_w}px'></div></div></td><td>{pct:.0f}%</td></tr>"
+            )
+
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>LM Studio Eval Report</title>
+  <style>
+    body {{ font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }}
+    table {{ border-collapse: collapse; width: 100%; margin: 16px 0; }}
+    th, td {{ border: 1px solid #ddd; padding: 8px; font-size: 14px; }}
+    th {{ background: #fafafa; text-align: left; }}
+    .pass {{ color: #2e7d32; }}
+    .fail {{ color: #c62828; }}
+    .summary {{ margin: 12px 0; }}
+    code {{ background: #f5f5f5; padding: 2px 4px; }}
+  </style>
+  </head>
+<body>
+  <h1>LM Studio Evaluation</h1>
+  <div class='summary'>
+    <div><strong>Model:</strong> {esc(model)}</div>
+    <div><strong>Base URL:</strong> {esc(base_url)}</div>
+    <div><strong>Score:</strong> {ok_count}/{total} = {overall:.0%}</div>
+    <div><strong>Elapsed:</strong> {elapsed:.2f}s</div>
+    <div><strong>Artifacts:</strong> <code>{esc(out_jsonl.name)}</code>, <code>{esc(out_csv.name)}</code></div>
+  </div>
+
+  <h2>By Category</h2>
+  <table>
+    <tr><th>Category</th><th>Pass/Total</th><th>Score</th><th>%</th></tr>
+    {''.join(cat_rows)}
+  </table>
+
+  <h2>Per-task Results</h2>
+  <table>
+    <tr><th>ID</th><th>Category</th><th>Type</th><th>Result</th><th>Latency (s)</th><th>Model</th><th>Error</th></tr>
+    {''.join(rows)}
+  </table>
+
+  <p>Generated: {esc(now_iso())}</p>
+</body>
+</html>
+"""
+        with out_html.open("w", encoding="utf-8") as hf:
+            hf.write(html)
+    except Exception as e:
+        print(f"Warning: failed to write HTML: {e}", file=sys.stderr)
+
     print("\nSummary")
     print(f"- Total: {ok_count}/{total} passed; score={overall:.2%}")
     for c, (p, n) in sorted(cats.items()):
         print(f"- {c}: {p}/{n} passed; {p/n:.0%}")
     print(f"- Elapsed: {elapsed:.2f}s")
     print(f"- Results JSONL: {out_jsonl}")
+    print(f"- Results CSV:   {out_csv}")
+    print(f"- Report HTML:   {out_html}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
