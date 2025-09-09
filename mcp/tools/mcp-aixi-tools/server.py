@@ -126,6 +126,9 @@ def run_agent(conf: str, log_path: Optional[str] = None) -> str:
     Behavior:
         - Auto-builds the binary if missing by invoking `make`.
         - Runs `./aixi <conf> <log_path>` at repo root; returns a short run summary.
+        - Honors optional timeout via env var `AIXI_TOOLS_RUN_TIMEOUT` (seconds).
+          If unset, applies a conservative default for configs prefixed with
+          `quick-` (30s); otherwise no timeout.
     """
     conf_path = Path(conf)
     if not conf_path.is_absolute():
@@ -142,7 +145,18 @@ def run_agent(conf: str, log_path: Optional[str] = None) -> str:
     lp = Path(log_path) if log_path else (LOG_DIR / f"run-{conf_path.stem}-{ts}.log")
     lp.parent.mkdir(parents=True, exist_ok=True)
 
-    code, out, err = _run([str(AIXI_BIN), str(conf_path), str(lp)], cwd=REPO_ROOT)
+    # Resolve timeout policy
+    timeout_env = os.getenv("AIXI_TOOLS_RUN_TIMEOUT")
+    timeout_sec: Optional[int]
+    if timeout_env:
+        try:
+            timeout_sec = int(timeout_env)
+        except Exception:
+            timeout_sec = None
+    else:
+        timeout_sec = 30 if conf_path.name.startswith("quick-") else None
+
+    code, out, err = _run([str(AIXI_BIN), str(conf_path), str(lp)], cwd=REPO_ROOT, timeout=timeout_sec)
     status = "success" if code == 0 else f"failed (exit {code})"
     tail = _tail((out or "") + ("\n" if out and err else "") + (err or ""), n=60)
     note = f"Log written: {lp}"

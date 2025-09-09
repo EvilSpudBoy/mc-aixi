@@ -1,0 +1,95 @@
+Metadata-Version: 2.4
+Name: mcp-hello
+Version: 0.1.0
+Summary: Minimal Python MCP server with example tools (hello, add)
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: mcp[cli]>=1.2.0
+Requires-Dist: httpx>=0.27
+
+# mcp-hello
+
+Minimal Python MCP server exposing two simple tools using FastMCP:
+- `hello(name: str) -> str`
+- `add(a: float, b: float) -> float`
+
+Extended with basic weather tools (US National Weather Service):
+- `get_alerts(state: str) -> str`
+- `get_forecast(latitude: float, longitude: float) -> str`
+
+## Requirements
+- Python 3.10+
+- `mcp` SDK (CLI extras) 1.2.0+
+- `httpx`
+
+## Setup
+Using uv (recommended):
+
+```bash
+# From repo root
+cd mcp/tools/mcp-hello
+uv venv
+. .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+uv pip install -e .
+```
+
+Using pip:
+
+```bash
+cd mcp/tools/mcp-hello
+python -m venv .venv
+. .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+pip install -e .
+```
+
+## Run the server (STDIO)
+
+```bash
+# From mcp/tools/mcp-hello/
+python hello.py
+# or with uv if you prefer
+uv run hello.py
+```
+
+## Try it with MCP Inspector
+No install needed:
+
+```bash
+npx @modelcontextprotocol/inspector python hello.py
+```
+
+- Choose the STDIO transport if prompted.
+- Tools available: `hello`, `add`, `get_alerts`, `get_forecast`.
+- Samples:
+  - `hello(name="World")`
+  - `add(a=1.5, b=2.5)`
+  - `get_alerts(state="CA")`
+  - `get_forecast(latitude=38.5816, longitude=-121.4944)`
+
+## Use with Claude Desktop
+Add an entry to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "mcp-hello": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/ABSOLUTE/PATH/TO/mcp/tools/mcp-hello",
+        "run",
+        "hello.py"
+      ]
+    }
+  }
+}
+```
+
+- Replace the absolute path accordingly. You may need the full path to `uv` (`which uv`).
+- Restart Claude Desktop and look for the tools UI; you should see `mcp-hello` tools.
+
+## Notes
+- Weather tools query the US National Weather Service (`api.weather.gov`) and only work for US locations.
+- These tools set a simple `User-Agent` as required by the API and handle basic errors.
+ - Do not print to stdout in STDIO servers; use logging to stderr if needed.
+ - This is a minimal scaffold; extend with resources/prompts or additional tools as needed.
