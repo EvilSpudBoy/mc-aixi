@@ -74,3 +74,23 @@ Quick Start (our servers)
   - `cd mcp/tools/mcp-aixi-tools && uv venv && . .venv/bin/activate && uv pip install -e .`
   - Run: `uv run server.py`
   - Inspect: `npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python server.py --method tools/list`
+
+Local LLM Eval (LM Studio)
+- Preflight (LM Studio):
+  - Start server: Developer → OpenAI Compatibility → Start Server
+  - Load a model (recommended: `openai/gpt-oss-20b`)
+  - Verify: `curl -sS http://127.0.0.1:1234/v1/models | jq`
+- Run quick eval:
+  - `cd mcp/tools/mcp-lmstudio`
+  - `uv run python ./eval_lmstudio.py --base-url http://127.0.0.1:1234/v1 --model "openai/gpt-oss-20b"`
+- Outputs: written to `log/` at repo root
+  - JSONL: `llm_eval-<ts>.jsonl`
+  - CSV:   `llm_eval-<ts>.csv`
+  - HTML:  `llm_eval-<ts>.html`
+
+Connectivity Notes
+- Prefer `http://127.0.0.1:1234/v1` over `localhost` to avoid IPv6 binding issues.
+- From sandboxed shells, host loopback is not reachable; run the eval locally or expose LM Studio on a LAN IP and use that URL.
+
+Branch Policy (fork)
+- Primary working branch: `dev/mc-aixi-local`. Open PRs against this branch when working within this fork.

@@ -68,6 +68,22 @@ Notes
 - Keep LM Studio running as a local server (Developer tab or `lms server start`).
 - For chat structured output, the tool parses JSON content when possible and returns it under `parsed`.
 
+Preflight Check
+```bash
+# Ensure the server is reachable and a model is shown
+curl -sS http://127.0.0.1:1234/v1/models | jq
+
+# Minimal chat call (replace model if needed)
+curl -sS -X POST http://127.0.0.1:1234/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "model":"openai/gpt-oss-20b",
+        "messages":[{"role":"user","content":"Say ACK only."}],
+        "max_tokens":16,
+        "temperature":0
+      }' | jq
+```
+
 Quick Evaluation
 - Run a small suite of tasks (instruction following, math, translation, structured JSON, basic tool-use cue, code) against your local model and write results to `log/`.
 
@@ -90,6 +106,14 @@ uv run python ./eval_lmstudio.py --model "openai/gpt-oss-20b"
 - Notes:
   - Tool-use success is detected if the model emits `tool_calls` or produces a greeting with a time. Many open models won’t emit `tool_calls`; the script still considers a reasonable answer a success.
   - Structured JSON uses `response_format` (schema when supported) plus a system prompt fallback.
+
+Troubleshooting
+- Inspector shows “Connection closed” or eval script prints many `connect_error` lines:
+  - Confirm LM Studio server is running and reachable via the preflight curl.
+  - Prefer `http://127.0.0.1:1234/v1` over `localhost` to avoid IPv6 binding.
+  - If running from a sandboxed shell, loopback may not reach your host; run locally or expose LM Studio on a LAN IP.
+- `uv run server.py` fails with “Multiple top-level modules discovered”:
+  - Fixed: `pyproject.toml` now declares `py_modules = ["server"]` so packaging includes only the MCP server module.
 
 Configure Claude Desktop
 ```json
