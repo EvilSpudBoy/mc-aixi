@@ -75,7 +75,42 @@ Configure Claude Desktop
 ```
 
 Configure Codex CLI
-- Codex CLI can connect to MCP STDIO servers. Two easy options:
-  - Use MCP Inspector (recommended for quick checks) as shown above.
-  - Or have your Codex CLI invocation spawn the server via STDIO using the same command/args as in the Claude config (uv with `--directory` and `run server.py`).
-- If your Codex CLI build supports a persistent MCP server config, mirror the Claude JSON format with `command`, `args`, and optional `env`.
+- Codex uses `~/.codex/config.toml` (TOML). To enable this MCP server:
+
+```toml
+# IMPORTANT: top-level key is `mcp_servers` (not `mcpServers`).
+[mcp_servers.lmstudio]
+command = "uv"
+args = [
+  "--directory",
+  "/ABSOLUTE/PATH/TO/mcp/tools/mcp-lmstudio",
+  "run",
+  "server.py",
+]
+# Optional environment for the server process
+env = { LMSTUDIO_BASE_URL = "http://localhost:1234/v1", LMSTUDIO_API_KEY = "lm-studio" }
+# Optional: increase startup timeout for tools/list on slower machines
+startup_timeout_ms = 20000
+```
+
+- Notes from Codex docs:
+  - Only STDIO MCP servers are supported directly (this server uses STDIO).
+  - Codex may cache tools/resources; it starts servers lazily when needed.
+  - See `docs/config.md#mcp_servers` in codex repo for full reference.
+
+Optional: point Codex model provider to LM Studio (OpenAI-compatible)
+- If you want Codex’s main model calls to go through LM Studio too, define a provider:
+
+```toml
+# Example provider for OpenAI-compatible chat completions via LM Studio
+[model_providers.lmstudio]
+name = "LM Studio"
+base_url = "http://localhost:1234/v1"
+# If you use an API key, set env var LMSTUDIO_API_KEY and reference it here
+env_key = "LMSTUDIO_API_KEY"
+wire_api = "chat"
+
+# Then select it
+model_provider = "lmstudio"
+model = "phi-3.1-mini-4k-instruct" # or one from lm_list_models
+```
