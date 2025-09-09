@@ -2,6 +2,8 @@ MCP Tools for mc-aixi
 
 This folder contains a minimal Model Context Protocol (MCP) server that exposes repo-specific tools the assistant can call. It follows the reference PDF: mcp/reference/Understanding Model Context Protocol (MCP) and Building Custom MCP Tools.pdf
 
+Active branch for this fork: `dev/mc-aixi-local`. Open PRs against that branch (not `main`) when working within this fork.
+
 Tools
 - list_envs(): List available conf files under conf/.
 - build(target?): Run make at repo root; returns a concise log tail.
