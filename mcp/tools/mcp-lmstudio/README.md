@@ -68,6 +68,29 @@ Notes
 - Keep LM Studio running as a local server (Developer tab or `lms server start`).
 - For chat structured output, the tool parses JSON content when possible and returns it under `parsed`.
 
+Quick Evaluation
+- Run a small suite of tasks (instruction following, math, translation, structured JSON, basic tool-use cue, code) against your local model and write results to `log/`.
+
+```bash
+cd mcp/tools/mcp-lmstudio
+uv run python ./eval_lmstudio.py --model "openai/gpt-oss-20b"
+# Options:
+#   --base-url (default http://localhost:1234/v1)
+#   --api-key  (default lm-studio)
+#   --tasks    (default ./eval_tasks.json)
+#   --temperature (default 0.2)
+#   --max-tokens  (default 512)
+#   --output-dir  (default repo log/)
+```
+
+- Output:
+  - JSONL: `log/llm_eval-<timestamp>.jsonl` (per-task records)
+  - Console summary with per-category pass/fail
+
+- Notes:
+  - Tool-use success is detected if the model emits `tool_calls` or produces a greeting with a time. Many open models won’t emit `tool_calls`; the script still considers a reasonable answer a success.
+  - Structured JSON uses `response_format` (schema when supported) plus a system prompt fallback.
+
 Configure Claude Desktop
 ```json
 {
