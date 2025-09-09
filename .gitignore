@@ -29,3 +29,23 @@ xcuserdata/
 
 ## Node (Inspector usage)
 node_modules/
+
+## Python (MCP tools and scripts)
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.egg-info/
+*.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pytype/
+pip-wheel-metadata/
+*.cover
+coverage.xml
+htmlcov/
