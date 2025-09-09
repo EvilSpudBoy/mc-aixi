@@ -51,3 +51,16 @@ Structure Notes
 - Example servers live under `mcp/tools/*` (e.g., `mcp-hello`, `mcp-aixi-tools`).
 - Keep each tool self-contained with a simple entrypoint (e.g., `hello.py`, `server.py`).
 
+References (local)
+- MCP Reference index: `mcp/reference/README.md`
+- Overview: `mcp/reference/overview.md`
+- Architecture: `mcp/reference/architecture.md`
+- Servers: `mcp/reference/servers.md`
+- Clients: `mcp/reference/clients.md`
+- Connect (local): `mcp/reference/connect-local.md`
+- Connect (remote): `mcp/reference/connect-remote.md`
+- Build server (Python): `mcp/reference/build-server.md`
+- Build client (Python): `mcp/reference/build-client.md`
+- SDKs: `mcp/reference/sdks.md`
+- Versioning: `mcp/reference/versioning.md`
+- MCP Inspector: `mcp/reference/inspector.md`
