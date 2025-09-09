@@ -1,50 +1,31 @@
-# C/C++ build artifacts
+## C/C++ build artifacts
 /aixi
 /src/*.o
 /src/*.d
 /tests/*.o
 
-# Logs and plots (generated)
-/log/
-/graph/
-
-# Documentation (generated)
-/doc/html/
-
-# macOS
+## macOS
 .DS_Store
 
-# Editors/IDEs
+## Editors/IDEs
 .vscode/
 .idea/
 *.swp
 *~
 
-# Xcode
+## Xcode
 **/*.xcuserdata/
 **/*.xcuserstate
 **/DerivedData/
 xcuserdata/
+/xcode/mc-aixi/mc-aixi.xcodeproj/xcuserdata/
 
-# Visual Studio
+## Visual Studio
 .vs/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
 
-# Python (MCP tools)
-__pycache__/
-*.py[cod]
-*.egg-info/
-*.eggs/
-build/
-dist/
-.venv/
-venv/
-.mypy_cache/
-.pytest_cache/
-.ruff_cache/
-
-# Node (Inspector usage)
+## Node (Inspector usage)
 node_modules/
