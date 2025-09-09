@@ -52,3 +52,30 @@ npx @modelcontextprotocol/inspector --cli --transport stdio \
 Notes
 - Keep LM Studio running as a local server (Developer tab or `lms server start`).
 - For chat structured output, the tool parses JSON content when possible and returns it under `parsed`.
+
+Configure Claude Desktop
+```json
+{
+  "mcpServers": {
+    "lmstudio": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/ABSOLUTE/PATH/TO/mcp/tools/mcp-lmstudio",
+        "run",
+        "server.py"
+      ],
+      "env": {
+        "LMSTUDIO_BASE_URL": "http://localhost:1234/v1",
+        "LMSTUDIO_API_KEY": "lm-studio"
+      }
+    }
+  }
+}
+```
+
+Configure Codex CLI
+- Codex CLI can connect to MCP STDIO servers. Two easy options:
+  - Use MCP Inspector (recommended for quick checks) as shown above.
+  - Or have your Codex CLI invocation spawn the server via STDIO using the same command/args as in the Claude config (uv with `--directory` and `run server.py`).
+- If your Codex CLI build supports a persistent MCP server config, mirror the Claude JSON format with `command`, `args`, and optional `env`.

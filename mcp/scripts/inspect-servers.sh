@@ -48,6 +48,7 @@ main() {
   check_node
   run_inspector "mcp-hello"       "$(dirname "$0")/../tools/mcp-hello"       "hello.py"
   run_inspector "mcp-aixi-tools"  "$(dirname "$0")/../tools/mcp-aixi-tools"  "server.py"
+  run_inspector "mcp-lmstudio"    "$(dirname "$0")/../tools/mcp-lmstudio"    "server.py"
 
   # Optional: quick tool calls if hello server available
   if has uv && [[ -d "$(dirname "$0")/../tools/mcp-hello" ]]; then
@@ -60,4 +61,3 @@ main() {
 }
 
 main "$@"
-
