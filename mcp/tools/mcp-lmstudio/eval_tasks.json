@@ -1,0 +1,87 @@
+{
+  "tasks": [
+    {
+      "id": "inst_ack",
+      "category": "instruction_following",
+      "type": "regex",
+      "prompt": "Respond with exactly ACK and nothing else.",
+      "expected_regex": "^ACK$",
+      "case_insensitive": false
+    },
+    {
+      "id": "math_mul",
+      "category": "math",
+      "type": "numeric",
+      "prompt": "Compute 17*23 =",
+      "expected_number": 391
+    },
+    {
+      "id": "translation_es",
+      "category": "translation",
+      "type": "regex",
+      "prompt": "Translate to Spanish: 'Hello world!'. Answer only the translation.",
+      "expected_regex": "\\bHola\\b",
+      "case_insensitive": true
+    },
+    {
+      "id": "structured_person",
+      "category": "structured_output",
+      "type": "json",
+      "prompt": "Return a JSON object with fields name (string) and year (integer). Use name 'AIXI' and year 2003. Output only JSON.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "year": { "type": "integer" }
+        },
+        "required": ["name", "year"],
+        "additionalProperties": false
+      },
+      "use_json_schema": true
+    },
+    {
+      "id": "tool_use_demo",
+      "category": "tool_use",
+      "type": "tool_use",
+      "prompt": "Use the provided tools to greet 'Sam' and include the current time.",
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_current_time",
+            "description": "Get the current time in ISO 8601 format",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "say_hello",
+            "description": "Return a short greeting to the person",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {"type": "string"}
+              },
+              "required": ["name"],
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "code_fib",
+      "category": "code",
+      "type": "regex",
+      "prompt": "Write only a Python function called fib(n) that returns the nth Fibonacci number. Output a single code block with no commentary.",
+      "expected_regex": "(?s)```(?:python\\n)?\\s*def\\s+fib\\s*\\(.*return.*```",
+      "case_insensitive": true
+    }
+  ]
+}
+
