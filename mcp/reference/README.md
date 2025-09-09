@@ -15,3 +15,8 @@ Contents
 - Versioning: ./versioning.md
 - MCP Inspector: ./inspector.md
 
+Updating References
+- These notes summarize official docs as of the current protocol version noted in versioning.md. Review upstream docs when updating server/client behavior.
+- Keep entries concise and actionable; prefer links to full examples in this repo.
+- When protocol version changes (see versioning.md), scan for lifecycle or primitive changes and update affected pages.
+- Avoid duplicating large code samples; include minimal, tested snippets.

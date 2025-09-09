@@ -64,3 +64,13 @@ References (local)
 - SDKs: `mcp/reference/sdks.md`
 - Versioning: `mcp/reference/versioning.md`
 - MCP Inspector: `mcp/reference/inspector.md`
+
+Quick Start (our servers)
+- mcp-hello
+  - `cd mcp/tools/mcp-hello && uv venv && . .venv/bin/activate && uv pip install -e .`
+  - Run: `uv run hello.py`
+  - Inspect: `npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python hello.py --method tools/list`
+- mcp-aixi-tools
+  - `cd mcp/tools/mcp-aixi-tools && uv venv && . .venv/bin/activate && uv pip install -e .`
+  - Run: `uv run server.py`
+  - Inspect: `npx @modelcontextprotocol/inspector --cli --transport stdio .venv/bin/python server.py --method tools/list`
