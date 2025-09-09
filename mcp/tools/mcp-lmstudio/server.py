@@ -202,6 +202,181 @@ async def lm_embeddings(
     return data
 
 
+def _demo_tool_definitions(include: Optional[list[str]] = None) -> list[dict[str, Any]]:
+    """Return example tool definitions for LM Studio tool-use demos."""
+    tools: dict[str, dict[str, Any]] = {
+        "say_hello": {
+            "type": "function",
+            "function": {
+                "name": "say_hello",
+                "description": "Says hello to someone",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "description": "Person's name"}
+                    },
+                    "required": ["name"],
+                    "additionalProperties": False,
+                },
+            },
+        },
+        "get_current_time": {
+            "type": "function",
+            "function": {
+                "name": "get_current_time",
+                "description": "Get the current local time in ISO 8601",
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False,
+                },
+            },
+        },
+    }
+    if include:
+        return [tools[n] for n in include if n in tools]
+    return list(tools.values())
+
+
+def _demo_tool_execute(name: str, arguments: dict[str, Any]) -> str:
+    """Execute a safe, built-in demo function and return a string result."""
+    try:
+        if name == "say_hello":
+            who = str(arguments.get("name", "there")).strip() or "there"
+            return f"Hello, {who}!"
+        if name == "get_current_time":
+            import datetime as _dt
+
+            return _dt.datetime.now().isoformat()
+    except Exception as e:
+        return f"error executing {name}: {type(e).__name__}: {e}"
+    return f"unknown tool: {name}"
+
+
+@mcp.tool()
+async def lm_demo_tool_use(
+    model: str,
+    user_message: str,
+    tools: Optional[list[str]] = None,
+    temperature: Optional[float] = 0.7,
+) -> dict[str, Any]:
+    """Demonstrate LM Studio tool use end-to-end with safe, built-in functions.
+
+    Flow:
+    - First call includes tool definitions; model may request tool_calls.
+    - Server executes requested demo tools and appends tool results.
+    - Second call (without tools) asks model to produce a final answer.
+
+    Returns dict with: first_response, tool_results, second_response, final.
+    """
+    # Build initial messages and tool list
+    messages: list[dict[str, Any]] = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": user_message},
+    ]
+    tool_defs = _demo_tool_definitions(tools)
+    first_payload: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "tools": tool_defs,
+    }
+    if temperature is not None:
+        first_payload["temperature"] = temperature
+
+    # First round: allow tool calls
+    try:
+        first = await _http_post("/chat/completions", first_payload)
+    except httpx.HTTPStatusError as he:
+        return {"error": f"HTTP {he.response.status_code}", "details": he.response.text}
+    except Exception as e:
+        return {"error": f"{type(e).__name__}", "details": str(e)}
+
+    # Extract tool calls (if any)
+    tool_calls: list[dict[str, Any]] = []
+    assistant_msg: dict[str, Any] = {}
+    try:
+        choice0 = (first.get("choices") or [{}])[0]
+        assistant_msg = choice0.get("message", {}) or {}
+        tool_calls = assistant_msg.get("tool_calls") or []
+    except Exception:
+        tool_calls = []
+
+    if not tool_calls:
+        # No tool use requested; return the assistant content directly
+        final_text = (assistant_msg or {}).get("content", "")
+        return {
+            "first_response": first,
+            "tool_results": [],
+            "second_response": None,
+            "final": final_text,
+        }
+
+    # Execute tool calls and prepare follow-up messages
+    tool_results: list[dict[str, Any]] = []
+    follow_messages = messages.copy()
+    # Include the assistant message that requested tool calls
+    follow_messages.append({
+        k: v for k, v in assistant_msg.items() if k in {"role", "content", "tool_calls"}
+    } or {"role": "assistant", "tool_calls": tool_calls})
+
+    for call in tool_calls:
+        fn = (call.get("function") or {})
+        name = str(fn.get("name") or "")
+        args_str = fn.get("arguments")
+        args: dict[str, Any]
+        try:
+            args = json.loads(args_str) if isinstance(args_str, str) else {}
+        except Exception:
+            args = {}
+        result = _demo_tool_execute(name, args)
+        tool_results.append({"name": name, "args": args, "result": result})
+        # Append tool result message referencing the tool_call id when available
+        msg: dict[str, Any] = {"role": "tool", "content": str(result)}
+        call_id = call.get("id")
+        if call_id:
+            msg["tool_call_id"] = call_id
+        follow_messages.append(msg)
+
+    # Second round: ask for final answer without tools
+    second_payload: dict[str, Any] = {
+        "model": model,
+        "messages": follow_messages,
+    }
+    if temperature is not None:
+        second_payload["temperature"] = temperature
+
+    try:
+        second = await _http_post("/chat/completions", second_payload)
+    except httpx.HTTPStatusError as he:
+        return {
+            "first_response": first,
+            "tool_results": tool_results,
+            "error": f"HTTP {he.response.status_code}",
+            "details": he.response.text,
+        }
+    except Exception as e:
+        return {
+            "first_response": first,
+            "tool_results": tool_results,
+            "error": f"{type(e).__name__}",
+            "details": str(e),
+        }
+
+    final_text = ""
+    try:
+        final_text = ((second.get("choices") or [{}])[0].get("message") or {}).get(
+            "content", ""
+        )
+    except Exception:
+        final_text = ""
+
+    return {
+        "first_response": first,
+        "tool_results": tool_results,
+        "second_response": second,
+        "final": final_text,
+    }
+
 if __name__ == "__main__":
     # Run the MCP server using stdio transport.
     mcp.run(transport="stdio")
