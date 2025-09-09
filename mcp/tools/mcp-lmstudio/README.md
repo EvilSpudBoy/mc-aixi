@@ -7,6 +7,10 @@ Tools
 - `lm_chat(messages, model, ...)` → call /v1/chat/completions
 - `lm_chat_structured(messages, model, schema, ...)` → chat with Structured Output (response_format)
 - `lm_embeddings(text, model)` → embeddings via /v1/embeddings
+- `lm_demo_tool_use(model, user_message, tools?)` → end‑to‑end tool‑use demo with safe built‑ins (say_hello, get_current_time)
+
+Recommended model for tool use
+- Prefer `openai/gpt-oss-20b` if loaded — it’s trained for tool use and tends to emit proper `tool_calls`.
 
 Config
 - `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`)
@@ -28,25 +32,36 @@ npx @modelcontextprotocol/inspector --cli --transport stdio \
 
 Example: call lm_chat (minimal payload)
 ```bash
-# Replace MODEL_ID with one from lm_list_models
+# Prefer openai/gpt-oss-20b if loaded; otherwise use a model from lm_list_models
 npx @modelcontextprotocol/inspector --cli --transport stdio \
   uv --directory mcp/tools/mcp-lmstudio run server.py \
   --method tools/call \
   --tool-name lm_chat \
-  --tool-arg model=MODEL_ID \
+  --tool-arg model=openai/gpt-oss-20b \
   --tool-arg messages='[{"role":"user","content":"Hello from MCP"}]'
 ```
 
 Example: call lm_chat_structured (tiny JSON schema)
 ```bash
-# Replace MODEL_ID with one from lm_list_models
+# Prefer openai/gpt-oss-20b if loaded; otherwise use a model from lm_list_models
 npx @modelcontextprotocol/inspector --cli --transport stdio \
   uv --directory mcp/tools/mcp-lmstudio run server.py \
   --method tools/call \
   --tool-name lm_chat_structured \
-  --tool-arg model=MODEL_ID \
+  --tool-arg model=openai/gpt-oss-20b \
   --tool-arg messages='[{"role":"user","content":"Tell me a short joke."}]' \
   --tool-arg schema='{"name":"joke","schema":{"type":"object","properties":{"joke":{"type":"string"}},"required":["joke"]}}'
+```
+
+Example: tool use demo (model calls built‑in tools)
+```bash
+# Prefer openai/gpt-oss-20b if loaded; otherwise use a model from lm_list_models
+npx @modelcontextprotocol/inspector --cli --transport stdio \
+  uv --directory mcp/tools/mcp-lmstudio run server.py \
+  --method tools/call \
+  --tool-name lm_demo_tool_use \
+  --tool-arg model=openai/gpt-oss-20b \
+  --tool-arg user_message='Say hello to Alice, then tell me the current time.'
 ```
 
 Notes
